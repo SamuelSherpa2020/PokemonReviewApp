@@ -31,21 +31,84 @@ namespace PokemonReviewApp.Controllers
             return Ok(categories);
         }
 
+        #region You Can UnComment Your Previous Code
+        //[HttpGet("{categoryId}")]
+        //[ProducesResponseType(200, Type = typeof(Category))]
+        //public IActionResult GetCategory(int categoryId)
+        //{
+        //    if (!_categoryRepository.CategoryExists(categoryId))
+        //    {
+        //        return NotFound();
+        //    }
+        //    var category = _mapper.Map<CategoryDTO>(_categoryRepository.GetCategory(categoryId));
+        //    if (!ModelState.IsValid)
+        //    {
+        //        return BadRequest(ModelState);
+        //    }
+        //    return Ok(category);
+        //}
+        #endregion
+
+        //[HttpGet("{categoryId}")]
+        //[ProducesResponseType(200, Type = typeof(CategoryDTO))]
+        //public async Task<IActionResult> GetCategory(int categoryId)
+        //{
+        //    if (!_categoryRepository.CategoryExists(categoryId))
+        //    {
+        //        return NotFound();
+        //    }
+
+        //    var category = await _categoryRepository.GetCategoryAsync(categoryId);
+        //    if (category == null)
+        //    {
+        //        return NotFound();
+        //    }
+
+        //    var categoryDTO = _mapper.Map<CategoryDTO>(category);
+        //    if (!ModelState.IsValid)
+        //    {
+        //        return BadRequest(ModelState);
+        //    }
+
+        //    return Ok(categoryDTO);
+        //}
 
         [HttpGet("{categoryId}")]
-        [ProducesResponseType(200, Type = typeof(Category))]
-        public IActionResult GetCategory(int categoryId)
+        [ProducesResponseType(200, Type = typeof(ResponseModel<CategoryDTO>))]
+        [ProducesResponseType(404, Type = typeof(ResponseModel<string>))]
+        [ProducesResponseType(400, Type = typeof(ResponseModel<string>))]
+        [ProducesResponseType(500, Type = typeof(ResponseModel<string>))]
+        public async Task<IActionResult> GetCategory(int categoryId)
         {
-            if (!_categoryRepository.CategoryExists(categoryId))
+            try
             {
-                return NotFound();
+                if (!_categoryRepository.CategoryExists(categoryId))
+                {
+                    return NotFound(new ResponseModel<string>(false, "No Category of Such Id Exists !", null!));
+                }
+
+                var category = await _categoryRepository.GetCategoryAsync(categoryId);
+                if (category == null)
+                {
+                    return NotFound(new ResponseModel<string>(false, "Category Could not be loaded from DB.", null!));
+                }
+
+                var categoryDTO = _mapper.Map<CategoryDTO>(category);
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(new ResponseModel<string>(false, "Category Mapping Failed", null!));
+                }
+
+                return Ok(new ResponseModel<CategoryDTO>(true, "Category retrieved successfully", categoryDTO));
             }
-            var category = _mapper.Map<CategoryDTO>(_categoryRepository.GetCategory(categoryId));
-            if (!ModelState.IsValid)
+            catch (AutoMapperMappingException ex)
             {
-                return BadRequest(ModelState);
+                return BadRequest(new ResponseModel<string>(false, $"An error occurred while mapping the category data:-{ex.Message}", null!));
             }
-            return Ok(category);
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ResponseModel<string>(false, $"An unexpected error occurred:- {ex.Message}", null!));
+            }
         }
 
 
