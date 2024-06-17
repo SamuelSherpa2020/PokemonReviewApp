@@ -78,7 +78,7 @@ namespace PokemonReviewApp.Controllers
         [ProducesResponseType(404, Type = typeof(ResponseModel<string>))]
         [ProducesResponseType(400, Type = typeof(ResponseModel<string>))]
         [ProducesResponseType(500, Type = typeof(ResponseModel<string>))]
-        public async Task<IActionResult> GetCategory(int categoryId)
+        public async Task<ActionResult<ResponseModel<CategoryDTO>>> GetCategory(int categoryId)
         {
             try
             {
